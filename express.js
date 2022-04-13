@@ -3,58 +3,75 @@ const server=express();
 const mysql = require('mysql');
 
 server.use(express.json())
-
-server.get('/xx',function(req,res){
-    res.send('<h1>Hola hermano GET</h1>');
-    res.end();
-})
-
-server.post('/login',function(req,res){
+function createConnection(){
     let con = mysql.createConnection({
         host: 'localhost',
         user: 'root',
         password: '',
         database: 'prueba'
     });
+    return con;
+}
+server.get('/xx',function(req,res){
+    res.send('<h1>Hola hermano GET</h1>');
+    res.end();
+})
+server.get('/clients',function(req,res){
+    
+    let con = createConnection();
     con.connect();
-    var sql = "INSERT INTO clients (name, password) VALUES ?";
-    var values = [
-      [req.body.username, req.body.password]
-    ];
-    con.query(sql, [values], function (err, result) {
+    
+    var sql = 'SELECT * FROM clients';
+    con.query(sql, function (err, result) {
         if (err) throw err;
-        console.log("Number of records inserted: " + result.affectedRows);
-      });
+        console.log(result);
+        res.send(result);
+    })
+})
+server.post('/login',function(req,res){
+    let con = createConnection();
+    con.connect();
 
+    
+      var username = req.body.username;
+      var password = req.body.password;
+
+      var sql = 'SELECT * FROM clients WHERE name = '+ mysql.escape(username)+' and '+' password = '+mysql.escape(password);
+      con.query(sql, [username], function (err, result) {
+          if (err) throw err;
+          console.log(result[0]);
+          if(result[0]!=null){
+             
+              res.send({error:undefined});
+          }else{
+            res.send({error:'Account doesnt exist'});
+          }
+        });
    // res.send({id:1,name:'Nombre'});
     //res.end();
 })
 
 server.post('/register',function(req,res){
-    let con = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        database: 'prueba'
-    });
+   con=createConnection();
     con.connect();
 
     var username = req.body.username;
     var sql = 'SELECT * FROM clients WHERE name = '+ mysql.escape(username);
     con.query(sql, [username], function (err, result) {
         if (err) throw err;
-        console.log(result.affectedRows);
-        if(result.affectedRows!=null){
-            console.log('Existe registor ya');
+
+        if(result[0]!=null){
+            console.log('Cliente ya existe.')
+            res.send({error:'That client name is taken.'});
         }else{
-            console.log('No existe registro')
+            console.log('Cliente creado.')
             var sql = "INSERT INTO clients (name, password) VALUES ?";
             var values = [
               [req.body.username, req.body.password]
             ];
             con.query(sql, [values], function (err, result) {
                 if (err) throw err;
-                console.log("Number of records inserted: " + result.affectedRows);
+                res.send({error:undefined});
               });
         }
       });
