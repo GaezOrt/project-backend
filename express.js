@@ -21,10 +21,10 @@ server.get('/clients',function(req,res){
     let con = createConnection();
     con.connect();
     
-    var sql = 'SELECT * FROM clients';
+    var sql = 'SELECT * FROM characters';
     con.query(sql, function (err, result) {
         if (err) throw err;
-        console.log(result);
+        
         res.send(result);
     })
 })
