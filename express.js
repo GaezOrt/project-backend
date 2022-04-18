@@ -51,6 +51,8 @@ server.post('/login',function(req,res){
     //res.end();
 })
 
+
+
 server.post('/register',function(req,res){
    con=createConnection();
     con.connect();
@@ -83,6 +85,36 @@ server.post('/register',function(req,res){
 })
 
 
+server.post('/create-character',function(req,res){
+    con=createConnection();
+     con.connect();
+ 
+     var character = req.body.character;
+     var sql = 'SELECT * FROM characters WHERE name = '+ mysql.escape(character);
+     con.query(sql, [character], function (err, result) {
+         if (err) throw err;
+ 
+         if(result[0]!=null){
+             console.log('The character already exists.')
+             res.send({error:'The character already exists.'});
+         }else{
+             console.log('Character created')
+             var sql = "INSERT INTO characters (name, movie,link) VALUES ?";
+             var values = [
+               [req.body.character, req.body.movie, req.body.link]
+             ];
+             con.query(sql, [values], function (err, result) {
+                 if (err) throw err;
+                 res.send({error:undefined});
+               });
+         }
+       });
+     
+     
+     
+    // res.send({id:1,name:'Nombre'});
+     //res.end();
+ })
 /*server.post('/login',(req,res)=>{
     console.log(req);
     
